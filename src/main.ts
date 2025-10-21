@@ -91,16 +91,24 @@ export async function run(): Promise<void> {
       per_page: 100
     })
 
+    const { data: commits } = await octokit.rest.repos.listCommits({
+      owner,
+      repo,
+      per_page: 100
+    })
+
+    const data = [...activities, ...commits.map(commit => ({ actor: commit.author }))]
+
     const activeUsers = new Set<string>()
-    for (const activity of activities) {
+    for (const it of data) {
       if (activeUsers.size >= 50) break
-      if (activity.actor == null) continue
-      if (activity.actor.login == null) continue
-      if (activity.actor.login === pr.user.login) continue
-      if (activity.actor.login.includes('[bot]')) continue
-      if (existingReviewers.includes(activity.actor.login)) continue
-      if (excludedReviewersList.includes(activity.actor.login)) continue
-      activeUsers.add(activity.actor.login)
+      if (it.actor == null) continue
+      if (it.actor.login == null) continue
+      if (it.actor.login === pr.user.login) continue
+      if (it.actor.login.includes('[bot]')) continue
+      if (existingReviewers.includes(it.actor.login)) continue
+      if (excludedReviewersList.includes(it.actor.login)) continue
+      activeUsers.add(it.actor.login)
     }
 
     if (activeUsers.size === 0) {
