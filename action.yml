@@ -1,6 +1,6 @@
-name: 'Reviewer Roulette'
+name: 'Reviewers Roulette'
 description: 'Assigns random reviewers to pull requests.'
-author: 'ihs7'
+author: 'borgespro'
 branding:
   icon: 'user-plus'
   color: 'green'
