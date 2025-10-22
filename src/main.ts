@@ -17,8 +17,8 @@ export async function run(): Promise<void> {
     const teamInput = core.getInput('team')
     const dryRun = core.getInput('dry-run')
 
-    core.info(`team: ${teamInput}`)
-    
+    core.info(`Selected team: ${teamInput}`)
+
     if (!pullRequestNumberInput) {
       throw new Error(
         `Input 'pull-request-number' not supplied. Unable to continue.`
@@ -97,6 +97,8 @@ export async function run(): Promise<void> {
         per_page: 100
       })
 
+      core.info(`Total members in team ${teamInput}: ${members.length}`);
+
       data = members.map(member => ({ login: member.login }));
     } else {
       const { data: activities } = await octokit.rest.activity.listRepoEvents({
@@ -104,15 +106,15 @@ export async function run(): Promise<void> {
         repo,
         per_page: 100
       })
-  
+
       const { data: commits } = await octokit.rest.repos.listCommits({
         owner,
         repo,
         per_page: 100
       })
-  
+
       data = [
-        ...activities.map(activity => ({ login: activity.actor && activity.actor.login })), 
+        ...activities.map(activity => ({ login: activity.actor && activity.actor.login })),
         ...commits.map(commit => ({ login: commit.author && commit.author.login })),
       ]
     }
