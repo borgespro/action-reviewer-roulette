@@ -1,9 +1,9 @@
 # Reviewer Roulette (GitHub Action)
 
-[![GitHub Super-Linter](https://github.com/ihs7/action-reviewer-roulette/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
-![CI](https://github.com/ihs7/action-reviewer-roulette/actions/workflows/ci.yml/badge.svg)
-[![Check dist/](https://github.com/ihs7/action-reviewer-roulette/actions/workflows/check-dist.yml/badge.svg)](https://github.com/ihs7/action-reviewer-roulette/actions/workflows/check-dist.yml)
-[![CodeQL](https://github.com/ihs7/action-reviewer-roulette/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ihs7/action-reviewer-roulette/actions/workflows/codeql-analysis.yml)
+[![GitHub Super-Linter](https://github.com/borgespro/action-reviewer-roulette/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
+![CI](https://github.com/borgespro/action-reviewer-roulette/actions/workflows/ci.yml/badge.svg)
+[![Check dist/](https://github.com/borgespro/action-reviewer-roulette/actions/workflows/check-dist.yml/badge.svg)](https://github.com/borgespro/action-reviewer-roulette/actions/workflows/check-dist.yml)
+[![CodeQL](https://github.com/borgespro/action-reviewer-roulette/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/borgespro/action-reviewer-roulette/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
 This GitHub Action automatically assigns a specified number of random reviewers
@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Assign random reviewers to PR
-        uses: ihs7/action-reviewer-roulette@v1
+        uses: borgespro/action-reviewer-roulette@v1
         with:
           number-of-reviewers: 2
 ```
@@ -47,7 +47,7 @@ reviewers to the pull request created.
   id: cpr
   uses: peter-evans/create-pull-request@v6
 - name: Assign random reviewers to PR
-  uses: ihs7/action-reviewer-roulette@v1
+  uses: borgespro/action-reviewer-roulette@v1
   if: ${{ steps.cpr.outputs.pull-request-number }}
   with:
     number-of-reviewers: 2
@@ -66,6 +66,7 @@ All inputs are **optional**. If not set, sensible defaults will be used.
 | `number-of-reviewers` | The number of reviewers add to the PR | `1` |
 | `max-number-of-reviewers` | The maximum number of reviewers for the PR, only adds reviewers up to this number | `''` |
 | `excluded-reviewers` | Comma separated list of GitHub usernames to exclude from the random selection | `''` |
+| `team` | The name of the team | `''` |
 | `dry-run` | Useful when testing the action, does everything but add reviewers to PR | `false` |
 
 ### Excluding users from the random selection
@@ -75,7 +76,7 @@ list of GitHub usernames in the `excluded-reviewers` input.
 
 ```yml
 - name: Assign random reviewers to PR
-  uses: ihs7/action-reviewer-roulette@v1
+  uses: borgespro/action-reviewer-roulette@v1
   with:
     number-of-reviewers: 2
     excluded-reviewers: 'happyhut,virtualhorse,howpufferfish'
