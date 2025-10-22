@@ -17,6 +17,8 @@ export async function run(): Promise<void> {
     const teamInput = core.getInput('team')
     const dryRun = core.getInput('dry-run')
 
+    core.info(`team: ${teamInput}`)
+    
     if (!pullRequestNumberInput) {
       throw new Error(
         `Input 'pull-request-number' not supplied. Unable to continue.`
@@ -115,7 +117,7 @@ export async function run(): Promise<void> {
       ]
     }
 
-    console.log('data: ', data);
+    core.info(`data: ${JSON.stringify(data)}`);
 
     const activeUsers = new Set<string>()
     for (const it of data) {
