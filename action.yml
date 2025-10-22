@@ -25,6 +25,10 @@ inputs:
     description: 'Comma separated list of usernames to exclude from the draw'
     required: false
     default: ''
+  team:
+    description: 'The name of the team'
+    required: false
+    default: ''
   dry-run:
     description: 'Dry run mode, does everything but add reviewers to PR'
     required: false
