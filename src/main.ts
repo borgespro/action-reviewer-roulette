@@ -88,7 +88,7 @@ export async function run(): Promise<void> {
       `Will add ${numberOfReviewersToAdd} reviewers to PR: #${pull_number}`
     )
 
-    let data = [];
+    let data = []
 
     if (teamInput && teamInput.length) {
       const { data: members } = await octokit.rest.teams.listMembersInOrg({
@@ -97,9 +97,9 @@ export async function run(): Promise<void> {
         per_page: 100
       })
 
-      core.info(`Total members in team ${teamInput}: ${members.length}`);
+      core.info(`Total members in team ${teamInput}: ${members.length}`)
 
-      data = members.map(member => ({ login: member.login }));
+      data = members.map((member) => ({ login: member.login }))
     } else {
       const { data: activities } = await octokit.rest.activity.listRepoEvents({
         owner,
@@ -114,12 +114,16 @@ export async function run(): Promise<void> {
       })
 
       data = [
-        ...activities.map(activity => ({ login: activity.actor && activity.actor.login })),
-        ...commits.map(commit => ({ login: commit.author && commit.author.login })),
+        ...activities.map((activity) => ({
+          login: activity.actor && activity.actor.login
+        })),
+        ...commits.map((commit) => ({
+          login: commit.author && commit.author.login
+        }))
       ]
     }
 
-    core.info(`data: ${JSON.stringify(data)}`);
+    core.info(`data: ${JSON.stringify(data)}`)
 
     const activeUsers = new Set<string>()
     for (const it of data) {
