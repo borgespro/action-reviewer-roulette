@@ -14,6 +14,7 @@ export async function run(): Promise<void> {
     const maxNumberOfReviewersInput = core.getInput('max-number-of-reviewers')
     const pullRequestNumberInput = core.getInput('pull-request-number')
     const excludedReviewersInput = core.getInput('excluded-reviewers')
+    const teamInput = core.getInput('team')
     const dryRun = core.getInput('dry-run')
 
     if (!pullRequestNumberInput) {
@@ -85,30 +86,44 @@ export async function run(): Promise<void> {
       `Will add ${numberOfReviewersToAdd} reviewers to PR: #${pull_number}`
     )
 
-    const { data: activities } = await octokit.rest.activity.listRepoEvents({
-      owner,
-      repo,
-      per_page: 100
-    })
+    let data = [];
 
-    const { data: commits } = await octokit.rest.repos.listCommits({
-      owner,
-      repo,
-      per_page: 100
-    })
+    if (teamInput) {
+      const { data: members } = await octokit.rest.teams.listMembersInOrg({
+        org: owner,
+        team_slug: teamInput,
+        per_page: 100
+      })
 
-    const data = [...activities, ...commits.map(commit => ({ actor: commit.author }))]
+      data = members;
+    } else {
+      const { data: activities } = await octokit.rest.activity.listRepoEvents({
+        owner,
+        repo,
+        per_page: 100
+      })
+  
+      const { data: commits } = await octokit.rest.repos.listCommits({
+        owner,
+        repo,
+        per_page: 100
+      })
+  
+      data = [
+        ...activities.map(commit => ({ login: commit.actor && commit.actor.login })), 
+        ...commits.map(commit => ({ login: commit.author && commit.author.login })),
+      ]
+    }
 
     const activeUsers = new Set<string>()
     for (const it of data) {
       if (activeUsers.size >= 50) break
-      if (it.actor == null) continue
-      if (it.actor.login == null) continue
-      if (it.actor.login === pr.user.login) continue
-      if (it.actor.login.includes('[bot]')) continue
-      if (existingReviewers.includes(it.actor.login)) continue
-      if (excludedReviewersList.includes(it.actor.login)) continue
-      activeUsers.add(it.actor.login)
+      if (it.login == null) continue
+      if (it.login === pr.user.login) continue
+      if (it.login.includes('[bot]')) continue
+      if (existingReviewers.includes(it.login)) continue
+      if (excludedReviewersList.includes(it.login)) continue
+      activeUsers.add(it.login)
     }
 
     if (activeUsers.size === 0) {
