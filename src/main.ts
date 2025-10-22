@@ -95,7 +95,7 @@ export async function run(): Promise<void> {
         per_page: 100
       })
 
-      data = members;
+      data = members.map(member => ({ login: member.login }));
     } else {
       const { data: activities } = await octokit.rest.activity.listRepoEvents({
         owner,
@@ -110,10 +110,12 @@ export async function run(): Promise<void> {
       })
   
       data = [
-        ...activities.map(commit => ({ login: commit.actor && commit.actor.login })), 
+        ...activities.map(activity => ({ login: activity.actor && activity.actor.login })), 
         ...commits.map(commit => ({ login: commit.author && commit.author.login })),
       ]
     }
+
+    console.log('data: ', data);
 
     const activeUsers = new Set<string>()
     for (const it of data) {
