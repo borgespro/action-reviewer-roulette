@@ -88,7 +88,7 @@ export async function run(): Promise<void> {
 
     let data = [];
 
-    if (teamInput) {
+    if (teamInput && teamInput.length) {
       const { data: members } = await octokit.rest.teams.listMembersInOrg({
         org: owner,
         team_slug: teamInput,
