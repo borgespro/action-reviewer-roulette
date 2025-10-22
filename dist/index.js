@@ -31248,7 +31248,9 @@ async function run() {
         const maxNumberOfReviewersInput = coreExports.getInput('max-number-of-reviewers');
         const pullRequestNumberInput = coreExports.getInput('pull-request-number');
         const excludedReviewersInput = coreExports.getInput('excluded-reviewers');
+        const teamInput = coreExports.getInput('team');
         const dryRun = coreExports.getInput('dry-run');
+        coreExports.info(`Selected team: ${teamInput}`);
         if (!pullRequestNumberInput) {
             throw new Error(`Input 'pull-request-number' not supplied. Unable to continue.`);
         }
@@ -31294,28 +31296,52 @@ async function run() {
         }
         const numberOfReviewersToAdd = Math.min(numberOfReviewers, maxNumberOfReviewers - existingReviewers.length);
         coreExports.info(`Will add ${numberOfReviewersToAdd} reviewers to PR: #${pull_number}`);
-        const { data: activities } = await octokit.rest.activity.listRepoEvents({
-            owner,
-            repo,
-            per_page: 100
-        });
+        let data = [];
+        if (teamInput && teamInput.length) {
+            const { data: members } = await octokit.rest.teams.listMembersInOrg({
+                org: owner,
+                team_slug: teamInput,
+                per_page: 100
+            });
+            coreExports.info(`Total members in team ${teamInput}: ${members.length}`);
+            data = members.map((member) => ({ login: member.login }));
+        }
+        else {
+            const { data: activities } = await octokit.rest.activity.listRepoEvents({
+                owner,
+                repo,
+                per_page: 100
+            });
+            const { data: commits } = await octokit.rest.repos.listCommits({
+                owner,
+                repo,
+                per_page: 100
+            });
+            data = [
+                ...activities.map((activity) => ({
+                    login: activity.actor && activity.actor.login
+                })),
+                ...commits.map((commit) => ({
+                    login: commit.author && commit.author.login
+                }))
+            ];
+        }
+        coreExports.info(`data: ${JSON.stringify(data)}`);
         const activeUsers = new Set();
-        for (const activity of activities) {
+        for (const it of data) {
             if (activeUsers.size >= 50)
                 break;
-            if (activity.actor == null)
+            if (it.login == null)
                 continue;
-            if (activity.actor.login == null)
+            if (it.login === pr.user.login)
                 continue;
-            if (activity.actor.login === pr.user.login)
+            if (it.login.includes('[bot]'))
                 continue;
-            if (activity.actor.login.includes('[bot]'))
+            if (existingReviewers.includes(it.login))
                 continue;
-            if (existingReviewers.includes(activity.actor.login))
+            if (excludedReviewersList.includes(it.login))
                 continue;
-            if (excludedReviewersList.includes(activity.actor.login))
-                continue;
-            activeUsers.add(activity.actor.login);
+            activeUsers.add(it.login);
         }
         if (activeUsers.size === 0) {
             coreExports.warning('Found no eligible reviewers to add.');
